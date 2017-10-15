@@ -16,6 +16,9 @@ npm run extract:players
 
 # players are filtered by the clubs extracted earlier
 npm run filter:players
+
+# assign players to their clubs so you get [{ name: 'FC Bayern Munich', players: [{ name: 'Manuel Neuer' }]}]
+npm run merge
 ```
 
 

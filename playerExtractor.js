@@ -1,5 +1,6 @@
 const Promise = require('bluebird')
 const _ = require('lodash')
+const countryCode = require('country-code')
 const sparql = require('sparql')
 
 const prefixes = require('./query-components/prefixes')
@@ -24,9 +25,50 @@ function val(obj) {
   return obj.value
 }
 
+function getInt(str) {
+  if (typeof(str) !== 'string') return null
+  const onlyDigitsString = str.replace(/\D/g, '')
+  return parseInt(onlyDigitsString, 10)
+}
+
+function translateCountry(country) {
+  if (!country) return null
+  if (country === 'Russian Federation') {
+    country = 'Russia'
+  }
+  if (_.includes(['Scotland', 'Wales', 'England', 'North Ireland'], country)) {
+    country = 'United Kingdom'
+  }
+  if (country === 'Republic of Macedonia') {
+    country = 'Macedonia, Republic of'
+  }
+  const codeObj = countryCode.find({ name: country })
+  if (codeObj) return codeObj.alpha2
+  return null
+}
+
+function translatePosition(position) {
+  if (!position) return null
+  if (position === 'Goalkeeper (association football)') return 'GK'
+  if (position === 'Defender (association football)') return 'DF'
+  if (position === 'Midfielder') return 'MF'
+  if (position === 'Forward (association football)') return 'FW'
+  return null
+}
+
 function getItem(array, index) {
   if (!array || !array.length || array.length < index + 1) return null
   return array[index]
+}
+
+function yearToDate(year) {
+  if (!year || year < 1700 || year > 2020) return null
+  return `${year}-01-01`
+}
+
+function checkDate(date) {
+  if (!date || date.length !== 10) return null
+  return date
 }
 
 function exec(querystring) {
@@ -51,7 +93,7 @@ function getPlayers(offset) {
     '(SAMPLE(?givenName) AS ?givenNameSample) \n' +
     '(SAMPLE(?surname) AS ?surnameSample) \n' +
     '(SAMPLE(?gender) AS ?genderSample) \n' +
-    '(GROUP_CONCAT(?positionLabel; separator=\'' + SEPARATOR + '\') AS ?positions) \n' +
+    '(SAMPLE(?positionLabel) AS ?positionSample) \n' +
     '(SAMPLE(?homepage) AS ?homepageSample) \n' +
     'WHERE {\n' +
       '{ \n' +
@@ -126,26 +168,29 @@ function getPlayers(offset) {
       givenNameSample,
       surnameSample,
       genderSample,
-      positions,
+      positionSample,
       homepageSample
     }) => ({
       id: val(player),
       playerLabel: val(playerLabelSample) || null,
-      atClubSinceYear: getItem(parseListString(val(yearclub)), 0) || null,
+      clubMembershipValidAsOf: checkDate(yearToDate(getInt(getItem(parseListString(val(yearclub)), 0)))) || null,
       clubId: getItem(parseListString(val(yearclub)), 1) || null,
-      numberOfMatchesForTheCurrentClub: parseInt(getItem(parseListString(val(yearclub)), 2), 10) || null,
+      numberOfMatchesForTheCurrentClub: getInt(getItem(parseListString(val(yearclub)), 2), 10) || null,
       height: parseInt(val(heightSample), 10) || null,
-      birthDate: val(birthDateSample) || null,
+      birthDate: checkDate(val(birthDateSample)) || null,
       birthPlace: val(birthPlaceSample) || null,
-      nationality: val(nationalitySample) || null,
+      nationality: translateCountry(val(nationalitySample)) || null,
       givenName: val(givenNameSample) || null,
       surname: val(surnameSample) || null,
       gender: val(genderSample) || null,
-      positions: parseListString(val(positions)) || null,
+      position: translatePosition(val(positionSample)) || null,
       homepage: val(homepageSample) || null
     }))
     .then((players) => {
-      return _.uniqBy(players, 'id')
+      return _.chain(players)
+       .filter(player => player.playerLabel && player.playerLabel.length > 0)
+       .uniqBy('id')
+       .value()
     })
 }
 

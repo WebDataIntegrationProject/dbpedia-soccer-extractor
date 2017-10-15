@@ -7,12 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "extract:clubs": "node clubExtractor.js",
     "extract:players": "node playerExtractor.js",
-    "filter:players": "node filterPlayers.js"
+    "filter:players": "node filterPlayers.js",
+    "merge": "node mergeClubsAndPlayers.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "bluebird": "^3.5.1",
+    "country-code": "0.0.3",
     "lodash": "^4.17.4",
     "sparql": "^0.1.3"
   }

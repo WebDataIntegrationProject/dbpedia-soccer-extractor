@@ -1,5 +1,6 @@
 const Promise = require('bluebird')
 const _ = require('lodash')
+const countryCode = require('country-code')
 const sparql = require('sparql')
 
 const prefixes = require('./query-components/prefixes')
@@ -24,6 +25,28 @@ function val(obj) {
   return obj.value
 }
 
+function getInt(str) {
+  if (typeof(str) !== 'string') return null
+  const onlyDigitsString = str.replace(/\D/g, '')
+  return parseInt(onlyDigitsString, 10)
+}
+
+function translateCountry(country) {
+  if (!country) return null
+  if (country === 'Russian Federation') {
+    country = 'Russia'
+  }
+  if (_.includes(['Scotland', 'Wales', 'England', 'North Ireland'], country)) {
+    country = 'United Kingdom'
+  }
+  if (country === 'Republic of Macedonia') {
+    country = 'Macedonia, Republic of'
+  }
+  const codeObj = countryCode.find({ name: country })
+  if (codeObj) return codeObj.alpha2
+  return null
+}
+
 function exec(querystring) {
   return new Promise((resolve, reject) => {
     client.query(querystring, (error, response) => {
@@ -44,8 +67,8 @@ function getClubs() {
     '(SAMPLE(?countryLabel) AS ?countryLabelSample) \n' +
     '(SAMPLE(?cityLabel) AS ?cityLabelSample) \n' +
     '(SAMPLE(?capacity) AS ?capacityMax) \n' +
-    '(GROUP_CONCAT(?nickName; separator=\'' + SEPARATOR + '\') AS ?nickNames) \n' +
-    '(GROUP_CONCAT(?groundLabel; separator=\'' + SEPARATOR + '\') AS ?groundLabels) \n' +
+    '(SAMPLE(?nickName) AS ?nickNameSample) \n' +
+    '(SAMPLE(?groundLabel) AS ?groundSample) \n' +
     'WHERE {\n' +
       '?club rdf:type dbo:SoccerClub ;\n' +
             'dct:subject ?football_clubs_in_country .\n' +      
@@ -99,23 +122,23 @@ function getClubs() {
       clubLabelSample,
       foundedSample,
       homepageSample,
-      nickNames,
+      nickNameSample,
       leagueLabelSample,
-      groundLabels,
+      groundSample,
       countryLabelSample,
       cityLabelSample,
       capacityMax
     }) => ({
       id: val(club),
       clubLabel: val(clubLabelSample) || null,
-      founded: parseInt(val(foundedSample), 10) || null,
+      founded: getInt(val(foundedSample)) || null,
       homepage: val(homepageSample) || null,
-      nickNames: parseListString(val(nickNames)) || null,
+      nickName: val(nickNameSample) || null,
       leagueLabel: val(leagueLabelSample) || null,
-      countryLabel: val(countryLabelSample) || null,
+      countryLabel: translateCountry(val(countryLabelSample)) || null,
       cityLabel: val(cityLabelSample) || null,
-      groundLabels: parseListString(val(groundLabels)) || null,
-      capacity: val(capacityMax) || null
+      groundLabel: val(groundSample) || null,
+      capacity: getInt(val(capacityMax)) || null
     }))
     .then((clubs) => {
       return _.uniqBy(clubs, 'id')
