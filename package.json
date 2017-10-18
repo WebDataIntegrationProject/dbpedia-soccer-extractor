@@ -17,5 +17,10 @@
     "country-code": "0.0.3",
     "lodash": "^4.17.4",
     "sparql": "^0.1.3"
+  },
+  "devDependencies": {
+    "eslint": "^4.9.0",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-plugin-import": "^2.7.0"
   }
 }

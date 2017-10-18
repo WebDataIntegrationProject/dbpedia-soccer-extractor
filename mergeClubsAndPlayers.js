@@ -12,7 +12,8 @@ const clubsWithPlayers = _.forEach(clubs, (club) => {
   numbersOfPlayers.push(clubPlayers.length)
 })
 
-console.log('Minimum number of players: ' + _.min(numbersOfPlayers))
-console.log('Maximum number of players: ' + _.max(numbersOfPlayers))
-console.log('Mean number of players: ' + _.mean(numbersOfPlayers))
+console.log(`Minimum number of players: ${_.min(numbersOfPlayers)}`)
+console.log(`Maximum number of players: ${_.max(numbersOfPlayers)}`)
+console.log(`Mean number of players: ${_.mean(numbersOfPlayers)}`)
+
 write(clubsWithPlayers, 'clubsWithPlayers.json')
