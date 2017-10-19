@@ -10,11 +10,16 @@ function write(obj, filename) {
   fs.writeFileSync(filepath, JSON.stringify(obj))
 }
 
+function writeXml(str, filename) {
+  const filepath = getFilePath(filename)
+  fs.writeFileSync(filepath, str)
+}
+
 function read(filename) {
   const filepath = getFilePath(filename)
   return JSON.parse(fs.readFileSync(filepath, { encoding: 'utf-8' }))
 }
 
 module.exports = {
-  write, read
+  write, read, writeXml
 }

@@ -19,6 +19,9 @@ npm run filter:players
 
 # assign players to their clubs so you get [{ name: 'FC Bayern Munich', players: [{ name: 'Manuel Neuer' }]}]
 npm run merge
+
+# maps the result and generates xml file from that
+npm run map:xml
 ```
 
 

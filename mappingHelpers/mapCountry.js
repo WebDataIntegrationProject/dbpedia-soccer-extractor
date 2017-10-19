@@ -1,3 +1,4 @@
+const _ = require('lodash')
 const countryCode = require('country-code')
 
 function mapCountry(country) {
@@ -12,7 +13,7 @@ function mapCountry(country) {
     country = 'Macedonia, Republic of'
   }
   const codeObj = countryCode.find({ name: country })
-  if (codeObj) return codeObj.alpha2
+  if (codeObj) return codeObj.alpha3
   return null
 }
 
