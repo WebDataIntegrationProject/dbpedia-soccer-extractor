@@ -40,14 +40,17 @@ const clubsElement = builder.create('clubs', xmlOptions)
 _.forEach(mapResult, (club) => {
   const clubElement = clubsElement.ele('club')
   _.forEach(club, (clubValue, clubKey) => {
-    if (clubKey !== 'players') {
+    if (clubKey !== 'players' && !!clubValue) {
       clubElement.ele(clubKey, clubValue)
-    } else {
+    } else if (clubKey === 'players' && club.players.length !== 0) {
       const playersElement = clubElement.ele('players')
       _.forEach(club.players, (player) => {
         const playerElement = playersElement.ele('player')
         _.forEach(player, (playerValue, playerKey) => {
-          playerElement.ele(playerKey, playerValue)
+          // eslint-disable-next-line
+          if (!!playerValue) {
+            playerElement.ele(playerKey, playerValue)
+          }
         })
       })
     }
